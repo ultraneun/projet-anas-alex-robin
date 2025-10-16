@@ -38,7 +38,7 @@ class Jeu:
         self.explosions_liste = []
 
         # chargement des images
-        pyxel.load("images.pyxres")
+        pyxel.load("notre_jeu/images.pyxres")
         
         self.scroll_y = 960
 
