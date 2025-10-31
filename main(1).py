@@ -7,7 +7,7 @@ fait le 30 octobre 2025
 
 # on rajoute random
 import pyxel, random
-from notre_jeu import bonus_malus
+from notre_jeu import modules_base
 from notre_jeu import adversaire
 from notre_jeu import tir
 TRANSPARENT_COLOR = 0
@@ -30,10 +30,11 @@ class Jeu:
         # initialisation des tirs
         self.tir = tir.Tir()
 
+        self.modules_base = modules_base.module()
+
         # Initialisation des ennemis (IMPORTANT : passer les bonnes références)
-        self.adversaire = adversaire.ennemis(self.tir, self.explosions_creation)
+        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
         # initialisation des explosions
-        self.explosions_liste = []
 
         # chargement des images
         pyxel.load("notre_jeu/images.pyxres")
@@ -68,7 +69,7 @@ class Jeu:
                 
                 self.adversaire.ennemis_liste.remove(ennemi)  # ✅ Supprime dans les LENTS
                 self.vies -= 1
-                self.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
         
         # Vérification collision avec ennemis RAPIDES
         for ennemi in self.adversaire.ennemis_rapides_liste[:]:
@@ -79,20 +80,9 @@ class Jeu:
                 
                 self.adversaire.ennemis_rapides_liste.remove(ennemi)  # ✅ Supprime dans les RAPIDES
                 self.vies -= 1
-                self.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
 
 
-    def explosions_creation(self, x, y):
-        """explosions aux points de collision entre deux objets"""
-        self.explosions_liste.append([x, y, 0])
-
-
-    def explosions_animation(self):
-        """animation des explosions"""
-        for explosion in self.explosions_liste:
-            explosion[2] +=1
-            if explosion[2] == 12:
-                self.explosions_liste.remove(explosion)
 
     def scroll(self):
         if self.scroll_y>384:
@@ -134,7 +124,7 @@ class Jeu:
         self.vaisseau_suppression()
 
         # evolution de l'animation des explosions
-        self.explosions_animation()
+        self.modules_base.explosions_animation()
         
         self.scroll()
 
@@ -179,7 +169,7 @@ class Jeu:
                 pyxel.blt(ennemi[0], ennemi[1], 0, 0, 32, 8, 8, TRANSPARENT_COLOR)
 
             # explosions (cercles de plus en plus grands)
-            for explosion in self.explosions_liste:
+            for explosion in self.modules_base.explosions_liste:
                 pyxel.circb(explosion[0]+4, explosion[1]+4, 2*(explosion[2]//4), 8+explosion[2]%3)
 
 
