@@ -1,14 +1,15 @@
-print ("alexcamarche")
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 18 10:42:04 2022
+fait le 30 octobre 2025
 
-@author: Peio
+@author: anas, alex, robin
 """
 
 # on rajoute random
 import pyxel, random
-
+from notre_jeu import bonus_malus
+from notre_jeu import adversaire
+from notre_jeu import tir
 TRANSPARENT_COLOR = 0
 
 class Jeu:
@@ -27,13 +28,10 @@ class Jeu:
         self.vies = 4
 
         # initialisation des tirs
-        self.tirs_liste = []
+        self.tir = tir.Tir()
 
-        # initialisation des ennemis
-        self.ennemis_liste = []
-
-        self.ennemis_rapides_liste = []
-
+        # Initialisation des ennemis (IMPORTANT : passer les bonnes références)
+        self.adversaire = adversaire.ennemis(self.tir, self.explosions_creation)
         # initialisation des explosions
         self.explosions_liste = []
 
@@ -56,93 +54,32 @@ class Jeu:
             self.vaisseau_y += 2
         if pyxel.btn(pyxel.KEY_UP) and self.vaisseau_y>0:
             self.vaisseau_y += -2
-
-
-    def tirs_creation(self):
-        """création d'un tir avec la barre d'espace"""
-
-        if pyxel.btnr(pyxel.KEY_SPACE):
-            self.tirs_liste.append([self.vaisseau_x, self.vaisseau_y-8])
-
-
-    def tirs_deplacement(self):
-        """déplacement des tirs vers le haut et suppression quand ils sortent du cadre"""
-
-        for tir in  self.tirs_liste:
-            tir[1] -= 1
-            if  tir[1]<-8:
-                self.tirs_liste.remove(tir)
-
-
-    def ennemis_creation(self):
-        """création aléatoire des ennemis"""
-
-        # un ennemi par seconde
-        if (pyxel.frame_count % 30 == 0):
-            self.ennemis_liste.append([random.randint(0, 120), 0])
-        if (pyxel.frame_count % 150 == 0):
-            self.ennemis_rapides_liste.append([random.randint(0, 120), 0,3])
-
-
-    def ennemis_deplacement(self):
-        """déplacement des ennemis vers le haut et suppression s'ils sortent du cadre"""              
-
-        for ennemi in self.ennemis_liste:
-            ennemi[1] += 1
-            if ennemi[1]>128:
-                self.ennemis_liste.remove(ennemi)
-
-        for ennemi in self.ennemis_rapides_liste:
-            ennemi[1] += 1  # Descend
-            
-            ennemi[0] += ennemi[2]  # Bouge selon la direction
-            
-            # Inverse la direction si touche un bord
-            if ennemi[0] >= 120:
-                ennemi[2] = -3  # Va maintenant à gauche
-            elif ennemi[0] <= 0:
-                ennemi[2] = 3  # Va maintenant à droite
-            
-            if ennemi[1] > 128:
-                self.ennemis_rapides_liste.remove(ennemi)
-
+    
 
     def vaisseau_suppression(self):
-        """disparition du vaisseau et d'un ennemi si contact"""
-
-        for ennemi in self.ennemis_liste:
-            if ennemi[0] <= self.vaisseau_x+8 and ennemi[1] <= self.vaisseau_y+8 and ennemi[0]+8 >= self.vaisseau_x and ennemi[1]+8 >= self.vaisseau_y:
-                self.ennemis_liste.remove(ennemi)
+        """Disparition du vaisseau et d'un ennemi si contact"""
+        
+        # Vérification collision avec ennemis LENTS
+        for ennemi in self.adversaire.ennemis_liste[:]:
+            if (ennemi[0] <= self.vaisseau_x + 8 and 
+                ennemi[1] <= self.vaisseau_y + 8 and 
+                ennemi[0] + 8 >= self.vaisseau_x and 
+                ennemi[1] + 8 >= self.vaisseau_y):
+                
+                self.adversaire.ennemis_liste.remove(ennemi)  # ✅ Supprime dans les LENTS
                 self.vies -= 1
-                # on ajoute l'explosion
                 self.explosions_creation(self.vaisseau_x, self.vaisseau_y)
         
-        for ennemi in self.ennemis_rapides_liste:
-            if ennemi[0] <= self.vaisseau_x+8 and ennemi[1] <= self.vaisseau_y+8 and ennemi[0]+8 >= self.vaisseau_x and ennemi[1]+8 >= self.vaisseau_y:
-                self.ennemis_rapides_liste.remove(ennemi)
+        # Vérification collision avec ennemis RAPIDES
+        for ennemi in self.adversaire.ennemis_rapides_liste[:]:
+            if (ennemi[0] <= self.vaisseau_x + 8 and 
+                ennemi[1] <= self.vaisseau_y + 8 and 
+                ennemi[0] + 8 >= self.vaisseau_x and 
+                ennemi[1] + 8 >= self.vaisseau_y):
+                
+                self.adversaire.ennemis_rapides_liste.remove(ennemi)  # ✅ Supprime dans les RAPIDES
                 self.vies -= 1
-                # on ajoute l'explosion
                 self.explosions_creation(self.vaisseau_x, self.vaisseau_y)
-
-
-    def ennemis_suppression(self):
-        """disparition d'un ennemi et d'un tir si contact"""
-
-        for ennemi in self.ennemis_liste:
-            for tir in self.tirs_liste:
-                if ennemi[0] <= tir[0]+8 and ennemi[0]+8 >= tir[0] and ennemi[1]+8 >= tir[1]:
-                    self.ennemis_liste.remove(ennemi)
-                    self.tirs_liste.remove(tir)
-                    # on ajoute l'explosion
-                    self.explosions_creation(ennemi[0], ennemi[1])
-                    
-        for ennemi in self.ennemis_rapides_liste:
-            for tir in self.tirs_liste:
-                if ennemi[0] <= tir[0]+8 and ennemi[0]+8 >= tir[0] and ennemi[1]+8 >= tir[1]:
-                    self.ennemis_rapides_liste.remove(ennemi)
-                    self.tirs_liste.remove(tir)
-                    # on ajoute l'explosion
-                    self.explosions_creation(ennemi[0], ennemi[1])
 
 
     def explosions_creation(self, x, y):
@@ -173,20 +110,25 @@ class Jeu:
         # deplacement du vaisseau
         self.deplacement()
 
-        # creation des tirs en fonction de la position du vaisseau
-        self.tirs_creation()
+        # Détecte quelle touche a été relâchée pour définir le sens
+        # sens == 1 : tir vertical vers le haut (touche SPACE)
+        # sens == 0 : tir horizontal vers la gauche (touche A)
+        sens = None
+        if pyxel.btnr(pyxel.KEY_SPACE):
+            sens = 1
+        elif pyxel.btnr(pyxel.KEY_A):
+            sens = 0
+
+        self.tir.tirs_creation(self.vaisseau_x, self.vaisseau_y, sens)
 
         # mise a jour des positions des tirs
-        self.tirs_deplacement()
+        self.tir.tirs_deplacement()
 
         # creation des ennemis
-        self.ennemis_creation()
-
-        # mise a jour des positions des ennemis
-        self.ennemis_deplacement()
-
-        # suppression des ennemis et tirs si contact
-        self.ennemis_suppression()
+        # Gestion des ennemis
+        self.adversaire.ennemis_creation()
+        self.adversaire.ennemis_deplacement()
+        self.adversaire.ennemis_suppression()
 
         # suppression du vaisseau et ennemi si contact
         self.vaisseau_suppression()
@@ -225,15 +167,16 @@ class Jeu:
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, 0, 0, 8, 8, TRANSPARENT_COLOR)
 
             # tirs
-            for tir in self.tirs_liste:
-                pyxel.blt(tir[0], tir[1], 0, 8, 0, 8, 8)
+            self.tir.tirs_affichage()
 
             # ennemis
-            for ennemi in self.ennemis_liste:
-                pyxel.blt(ennemi[0], ennemi[1], 0, 0, 8, 8, 8)
+            # Ennemis lents
+            for ennemi in self.adversaire.ennemis_liste:
+                pyxel.blt(ennemi[0], ennemi[1], 0, 0, 8, 8, 8, TRANSPARENT_COLOR)
 
-            for ennemi in self.ennemis_rapides_liste:
-                pyxel.blt(ennemi[0], ennemi[1], 0, 0, 32, 8, 8)
+            # Ennemis rapides
+            for ennemi in self.adversaire.ennemis_rapides_liste:
+                pyxel.blt(ennemi[0], ennemi[1], 0, 0, 32, 8, 8, TRANSPARENT_COLOR)
 
             # explosions (cercles de plus en plus grands)
             for explosion in self.explosions_liste:
