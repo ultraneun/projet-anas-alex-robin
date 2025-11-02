@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
-import pyxel, random
+import pyxel
+import random
 from notre_jeu import modules_base, adversaire, tir, skin
 
 TRANSPARENT_COLOR = 0
 
 class Jeu:
     def __init__(self):
-        pyxel.init(128,128,title="Space Game")
+        pyxel.init(128, 128, title="Space Game")
         pyxel.load("notre_jeu/images.pyxres")
-
         # --------------------
         # MENU & SKINS
         # --------------------
         self.menu_skins = skin.MenuSkins()
-
         # --------------------
         # VARIABLES JEU
         # --------------------
@@ -22,21 +21,19 @@ class Jeu:
         self.vies = 4
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
-        self.adversaire = adversaire.ennemis(self.tir,self.modules_base.explosions_creation)
+        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
         self.scroll_y = 960
-
-        pyxel.run(self.update,self.draw)
+        pyxel.run(self.update, self.draw)
 
     # --------------------
     # UPDATE
     # --------------------
     def update(self):
-        if self.menu_skins.etat in ["menu","skins","skins_vaisseau","skins_ennemis","skins_ennemis_rapides","skins_bonus"]:
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "skins_ennemis", "skins_ennemis_rapides", "skins_bonus"]:
             self.menu_skins.update()
-            # Entrée pour lancer le jeu depuis le menu
-            if self.menu_skins.etat=="menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix==0:
+            if self.menu_skins.etat == "menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix == 0:
                 self.reset_game()
-                self.menu_skins.etat="jeu"
+                self.menu_skins.etat = "jeu"
         else:
             self.update_jeu()
 
@@ -45,7 +42,7 @@ class Jeu:
     # --------------------
     def draw(self):
         pyxel.cls(0)
-        if self.menu_skins.etat in ["menu","skins","skins_vaisseau","skins_ennemis","skins_ennemis_rapides","skins_bonus"]:
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "skins_ennemis", "skins_ennemis_rapides", "skins_bonus"]:
             self.menu_skins.draw()
         else:
             self.draw_jeu()
@@ -73,18 +70,29 @@ class Jeu:
             self.vaisseau_y -= 2
 
     def vaisseau_suppression(self):
+    # Collisions avec les ennemis lents
         for ennemi in self.adversaire.ennemis_liste[:]:
             if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
                 ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
                 self.adversaire.ennemis_liste.remove(ennemi)
                 self.vies -= 1
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+
+    # Collisions avec les ennemis rapides
         for ennemi in self.adversaire.ennemis_rapides_liste[:]:
             if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
                 ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
                 self.adversaire.ennemis_rapides_liste.remove(ennemi)
                 self.vies -= 1
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+
+        for tir in self.tir.tirs_ennemis_liste[:]:
+            if (tir[0] <= self.vaisseau_x + 8 and tir[1] <= self.vaisseau_y + 8 and
+                tir[0] + 2 >= self.vaisseau_x and tir[1] + 4 >= self.vaisseau_y):
+                self.tir.tirs_ennemis_liste.remove(tir)
+                self.vies -= 1
+                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+
 
     def scroll(self):
         if self.scroll_y > 384:
@@ -97,7 +105,6 @@ class Jeu:
             if pyxel.btnr(pyxel.KEY_RETURN):
                 self.menu_skins.etat = "menu"
             return
-
         self.deplacement()
         sens = None
         if pyxel.btnr(pyxel.KEY_SPACE):
@@ -108,36 +115,37 @@ class Jeu:
         self.tir.tirs_deplacement()
         self.adversaire.ennemis_creation()
         self.adversaire.ennemis_deplacement()
+        self.adversaire.ennemis_tir()  
         self.adversaire.ennemis_suppression()
-        self.vaisseau_suppression()
+        self.vaisseau_suppression()  
         self.modules_base.explosions_animation()
         self.scroll()
+
 
     def draw_jeu(self):
         if self.vies > 0:
             pyxel.bltm(0, 0, 0, 192, (self.scroll_y // 4) % 128, 128, 128)
             pyxel.bltm(0, 0, 0, 0, self.scroll_y, 128, 128, 0)
-            pyxel.text(5,5, 'VIES:'+ str(self.vies), 7)
-
-            # vaisseau
+            pyxel.text(5, 5, 'VIES:' + str(self.vies), 7)
+            # Affichage du vaisseau
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, u, v, 8, 8, 0)
-
-            # ennemis
-            u_e, v_e = self.menu_skins.skins_ennemis[self.menu_skins.skin_ennemis]
-            for ennemis in self.adversaire.ennemis_liste:
-                pyxel.blt(ennemis[0], ennemis[1], 0, u_e, v_e, 8, 8, 0)
-
-            # ennemis rapides
-            u_r, v_r = self.menu_skins.skins_ennemis_rapides[self.menu_skins.skin_ennemis_rapides]
-            for ennemis in self.adversaire.ennemis_rapides_liste:
-                pyxel.blt(ennemis[0], ennemis[1], 0, u_r, v_r, 8, 8, 0)
-
+            # Affichage des ennemis lents
+            for ennemi in self.adversaire.ennemis_liste:
+                u_e, v_e = self.adversaire.skins_ennemis[ennemi[2]]
+                pyxel.blt(ennemi[0], ennemi[1], 0, u_e, v_e, 8, 8, 0)
+            # Affichage des ennemis rapides
+            for ennemi in self.adversaire.ennemis_rapides_liste:
+                u_r, v_r = self.adversaire.skins_ennemis[ennemi[2]]
+                pyxel.blt(ennemi[0], ennemi[1], 0, u_r, v_r, 8, 8, 0)
+            # Affichage des tirs (joueur et ennemis)
             self.tir.tirs_affichage()
+            # Affichage des explosions
             for explosion in self.modules_base.explosions_liste:
-                pyxel.circb(explosion[0]+4, explosion[1]+4, 2*(explosion[2]//4), 8+explosion[2]%3)
+                pyxel.circb(explosion[0] + 4, explosion[1] + 4, 2 * (explosion[2] // 4), 8 + explosion[2] % 3)
         else:
-            pyxel.text(50,64,"GAME OVER",7)
-            pyxel.text(30,80,"ENTREE POUR MENU",6)
+            pyxel.text(50, 64, "GAME OVER", 7)
+            pyxel.text(30, 80, "ENTREE POUR MENU", 6)
+
 
 Jeu()
