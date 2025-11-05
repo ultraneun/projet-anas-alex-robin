@@ -18,7 +18,7 @@ class Jeu:
         # --------------------
         self.vaisseau_x = 60
         self.vaisseau_y = 60
-        self.vies = 4
+        self.vies = 3
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
@@ -71,12 +71,7 @@ class Jeu:
 
     def vaisseau_suppression(self):
     # Collisions avec les ennemis lents
-        for ennemi in self.adversaire.ennemis_liste[:]:
-            if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
-                ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
-                self.adversaire.ennemis_liste.remove(ennemi)
-                self.vies -= 1
-                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+        
 
     # Collisions avec les ennemis rapides
         for ennemi in self.adversaire.ennemis_rapides_liste[:]:
@@ -86,14 +81,7 @@ class Jeu:
                 self.vies -= 1
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
 
-        for tir in self.tir.tirs_ennemis_liste[:]:
-            if (tir[0] <= self.vaisseau_x + 8 and tir[1] <= self.vaisseau_y + 8 and
-                tir[0] + 2 >= self.vaisseau_x and tir[1] + 4 >= self.vaisseau_y):
-                self.tir.tirs_ennemis_liste.remove(tir)
-                self.vies -= 1
-                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
-
-
+        
     def scroll(self):
         if self.scroll_y > 384:
             self.scroll_y -= 1
@@ -131,9 +119,7 @@ class Jeu:
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, u, v, 8, 8, 0)
             # Affichage des ennemis lents
-            for ennemi in self.adversaire.ennemis_liste:
-                u_e, v_e = self.adversaire.skins_ennemis[ennemi[2]]
-                pyxel.blt(ennemi[0], ennemi[1], 0, u_e, v_e, 8, 8, 0)
+           
             # Affichage des ennemis rapides
             for ennemi in self.adversaire.ennemis_rapides_liste:
                 u_r, v_r = self.adversaire.skins_ennemis[ennemi[2]]

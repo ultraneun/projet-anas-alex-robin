@@ -13,12 +13,8 @@ class ennemis:
 
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
-        if pyxel.frame_count % 30 == 0:
-            ennemi_type = random.randint(0, 2)  # 0, 1 ou 2
-            pv = 3 if ennemi_type == 0 else 1
-            self.ennemis_liste.append([random.randint(0, 120), 0, ennemi_type, pv, 0])
 
-        if pyxel.frame_count % 150 == 0:
+        if pyxel.frame_count % 30 == 0:
             ennemi_type = random.randint(0, 2)  # 0, 1 ou 2
             pv = 3 if ennemi_type == 0 else 1
             direction = random.choice([1, -1])
