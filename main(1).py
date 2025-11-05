@@ -23,7 +23,9 @@ class Jeu:
         self.modules_base = modules_base.module()
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
         self.scroll_y = 960
+        pyxel.playm(0, loop=True) #musique pyxel
         pyxel.run(self.update, self.draw)
+        
 
     # --------------------
     # UPDATE
