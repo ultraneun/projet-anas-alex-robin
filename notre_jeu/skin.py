@@ -127,7 +127,7 @@ class MenuSkins:
 
     def draw_skins(self):
         pyxel.text(30, 20, "CHOISIR CATEGORIE", 10)
-        options = ["VAISSEAU","ENNEMIS","ENNEMIS RAPIDES","BONUS","RETOUR"]
+        options = ["VAISSEAU","RETOUR"]
         for i, txt in enumerate(options):
             color = 7 if i == self.skins_menu_choix else 5
             pyxel.text(40, 50 + i*12, txt, color)
@@ -137,18 +137,6 @@ class MenuSkins:
             liste = self.skins_vaisseau
             selection = self.skin_vaisseau
             titre = "SKIN VAISSEAU"
-        elif self.etat == "skins_ennemis":
-            liste = self.skins_ennemis
-            selection = self.skin_ennemis
-            titre = "ENNEMIS"
-        elif self.etat == "skins_ennemis_rapides":
-            liste = self.skins_ennemis_rapides
-            selection = self.skin_ennemis_rapides
-            titre = "ENNEMIS RAPIDES"
-        else:
-            liste = self.skins_bonus
-            selection = self.skin_bonus
-            titre = "SKIN BONUS"
 
         pyxel.text(35, 20, titre, 10)
         for i, (u,v) in enumerate(liste):

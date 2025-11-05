@@ -29,7 +29,7 @@ class Jeu:
     # UPDATE
     # --------------------
     def update(self):
-        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "skins_ennemis", "skins_ennemis_rapides", "skins_bonus"]:
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau"]:
             self.menu_skins.update()
             if self.menu_skins.etat == "menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix == 0:
                 self.reset_game()
@@ -42,7 +42,7 @@ class Jeu:
     # --------------------
     def draw(self):
         pyxel.cls(0)
-        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "skins_ennemis", "skins_ennemis_rapides", "skins_bonus"]:
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau"]:
             self.menu_skins.draw()
         else:
             self.draw_jeu()
