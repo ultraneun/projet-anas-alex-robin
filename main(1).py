@@ -23,7 +23,7 @@ class Jeu:
         self.modules_base = modules_base.module()
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
         self.scroll_y = 960
-        pyxel.playm(0, loop=True) #musique pyxel
+        self.musique_en_cours = False#musique pyxel
         pyxel.run(self.update, self.draw)
         
 
@@ -32,11 +32,17 @@ class Jeu:
     # --------------------
     def update(self):
         if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau"]:
+            if self.musique_en_cours:
+                pyxel.stop()
+                self.musique_en_cours = False
             self.menu_skins.update()
             if self.menu_skins.etat == "menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix == 0:
                 self.reset_game()
                 self.menu_skins.etat = "jeu"
         else:
+            if not self.musique_en_cours:
+                pyxel.playm(0, loop=True)
+                self.musique_en_cours = True
             self.update_jeu()
 
     # --------------------
