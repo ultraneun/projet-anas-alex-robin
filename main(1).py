@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pyxel
 import random
-from notre_jeu import modules_base, adversaire, tir, skin
+from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus
 
 TRANSPARENT_COLOR = 0
 
@@ -21,6 +21,8 @@ class Jeu:
         self.vies = 3
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
+        # initialisation des bonus/malus (coeurs et météorites)
+        self.bonus = bonus_malus.BonusMalus(self.modules_base.explosions_creation)
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
         self.scroll_y = 960
         self.musique_en_cours = False#musique pyxel
@@ -79,9 +81,6 @@ class Jeu:
 
     def vaisseau_suppression(self):
     # Collisions avec les ennemis lents
-        
-
-    # Collisions avec les ennemis rapides
         for ennemi in self.adversaire.ennemis_rapides_liste[:]:
             if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
                 ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
@@ -117,6 +116,12 @@ class Jeu:
         self.vaisseau_suppression()  
         self.modules_base.explosions_animation()
         self.scroll()
+        # mise a jour des bonus/malus
+        self.bonus.update()
+        # collisions entre joueur et coeurs/météorites
+        delta = self.bonus.check_player_collision(self.vaisseau_x, self.vaisseau_y)
+        if delta != 0:
+            self.vies += delta
 
 
     def draw_jeu(self):
@@ -135,6 +140,8 @@ class Jeu:
                 pyxel.blt(ennemi[0], ennemi[1], 0, u_r, v_r, 8, 8, 0)
             # Affichage des tirs (joueur et ennemis)
             self.tir.tirs_affichage()
+            # affichage des coeurs et météorites
+            self.bonus.draw()
             # Affichage des explosions
             for explosion in self.modules_base.explosions_liste:
                 pyxel.circb(explosion[0] + 4, explosion[1] + 4, 2 * (explosion[2] // 4), 8 + explosion[2] % 3)
