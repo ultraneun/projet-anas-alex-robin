@@ -53,7 +53,7 @@ class Jeu:
     def reset_game(self):
         self.vaisseau_x = 60
         self.vaisseau_y = 60
-        self.vies = 4
+        self.vies = 3
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
@@ -91,6 +91,7 @@ class Jeu:
     def update_jeu(self):
         if self.vies <= 0:
             if pyxel.btnr(pyxel.KEY_RETURN):
+                self.reset_game()
                 self.menu_skins.etat = "menu"
             return
         self.deplacement()
