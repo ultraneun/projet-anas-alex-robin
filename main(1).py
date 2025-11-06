@@ -1,9 +1,9 @@
-
+# -*- coding: utf-8 -*-
 import pyxel
 import random
 from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus, Score
 
-
+TRANSPARENT_COLOR = 0
 class Jeu:
     def __init__(self):
         pyxel.init(128, 128, title="Space Game")
@@ -17,7 +17,7 @@ class Jeu:
         # --------------------
         self.vaisseau_x = 60
         self.vaisseau_y = 60
-        # score et vies gérés par GestionScore
+         # score et vies gérés par GestionScore
         self.gestion_score = Score.GestionScore()
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
@@ -86,7 +86,7 @@ class Jeu:
             if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
                 ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
                 self.adversaire.ennemis_rapides_liste.remove(ennemi)
-                # décrémenter la vie via GestionScore
+                 # décrémenter la vie via GestionScore
                 self.gestion_score.retirer_vie()
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
 
