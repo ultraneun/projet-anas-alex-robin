@@ -4,8 +4,6 @@ import random
 from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus
 
 TRANSPARENT_COLOR = 0
-
-
 class Jeu:
     def __init__(self):
         pyxel.init(128, 128, title="Space Game")
