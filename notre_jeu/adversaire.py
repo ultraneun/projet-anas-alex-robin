@@ -3,8 +3,7 @@ import random
 
 class ennemis:
     def __init__(self, tir_instance, explosions_creation_callback):
-        # Liste des ennemis : [x, y, type, pv, direction]
-        # type: 0 = Tank (3 PV), 1 = Tireur (rebondit et tire), 2 = Rapide (double vitesse)
+        # type 0 = Tank (3 PV), 1 = Tireur (rebondit et tire), 2 = Rapide (double vitesse)
         self.ennemis_liste = []
         self.ennemis_rapides_liste = []
         self.tir = tir_instance
@@ -14,7 +13,7 @@ class ennemis:
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
 
-        if pyxel.frame_count % 30 == 0:
+        if pyxel.frame_count % 8 == 0:
             ennemi_type = random.randint(0, 2)  # 0, 1 ou 2
             pv = 3 if ennemi_type == 0 else 1
             direction = random.choice([1, -1])

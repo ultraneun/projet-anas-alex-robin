@@ -3,14 +3,7 @@ import random
 
 
 class BonusMalus:
-	"""Gère les petits coeurs (bonus) et les météorites (malus).
 
-	- coeurs_liste contient des éléments [x, y]
-	- meteores_liste contient des éléments [x, y]
-
-	On utilise une callback `explosion_callback(x,y)` pour créer des explosions
-	quand une météorite touche le vaisseau.
-	"""
 	def __init__(self, explosion_callback=None):
 		self.coeurs_liste = []
 		self.meteores_liste = []
@@ -18,13 +11,12 @@ class BonusMalus:
 
 
 	def update(self):
-		"""Appelée à chaque frame : spawn et déplacement."""
 		# spawn coeur (rare)
-		if pyxel.frame_count % 300 == 0:
+		if pyxel.frame_count % 150 == 0:
 			self.coeurs_liste.append([random.randint(0, 120), 0])
 
 		# spawn météorite (plus fréquent)
-		if pyxel.frame_count % 60 == 0:
+		if pyxel.frame_count % 25 == 0:
 			self.meteores_liste.append([random.randint(0, 120), 0])
 
 		# déplacement : descend
