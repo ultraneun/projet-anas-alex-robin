@@ -9,7 +9,7 @@ class ennemis:
         self.ennemis_rapides_liste = []
         self.tir = tir_instance
         self.explosions_creation = explosions_creation_callback
-        self.skins_ennemis = [(0, 8), (8, 40), (8, 32)]  # Coordonnées des sprites pour les 3 types
+        self.skins_ennemis = [(0, 32), (8, 40), (8, 32)]  # Coordonnées des sprites pour les 3 types
 
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
