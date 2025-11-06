@@ -16,7 +16,7 @@ class BonusMalus:
 			self.coeurs_liste.append([random.randint(0, 120), 0])
 
 		# spawn météorite (plus fréquent)
-		if pyxel.frame_count % 25 == 0:
+		if pyxel.frame_count % 20 == 0:
 			self.meteores_liste.append([random.randint(0, 120), 0])
 
 		# déplacement : descend

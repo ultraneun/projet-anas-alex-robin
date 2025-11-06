@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
+
 import pyxel
 import random
-from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus
-
+from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus, Score
 
 
 class Jeu:
@@ -18,7 +17,8 @@ class Jeu:
         # --------------------
         self.vaisseau_x = 60
         self.vaisseau_y = 60
-        self.vies = 3
+        # score et vies gérés par GestionScore
+        self.gestion_score = Score.GestionScore()
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
         # initialisation des bonus/malus (coeurs et météorites)
@@ -63,7 +63,8 @@ class Jeu:
     def reset_game(self):
         self.vaisseau_x = 60
         self.vaisseau_y = 60
-        self.vies = 3
+        # réinitialiser gestion du score/vies
+        self.gestion_score = Score.GestionScore()
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
         self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
@@ -85,7 +86,8 @@ class Jeu:
             if (ennemi[0] <= self.vaisseau_x + 8 and ennemi[1] <= self.vaisseau_y + 8 and
                 ennemi[0] + 8 >= self.vaisseau_x and ennemi[1] + 8 >= self.vaisseau_y):
                 self.adversaire.ennemis_rapides_liste.remove(ennemi)
-                self.vies -= 1
+                # décrémenter la vie via GestionScore
+                self.gestion_score.retirer_vie()
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
 
         
@@ -96,7 +98,7 @@ class Jeu:
             self.scroll_y = 960
 
     def update_jeu(self):
-        if self.vies <= 0:
+        if self.gestion_score.vies <= 0:
             if pyxel.btnr(pyxel.KEY_RETURN):
                 self.reset_game()
                 self.menu_skins.etat = "menu"
@@ -118,17 +120,21 @@ class Jeu:
         self.scroll()
         # mise a jour des bonus/malus
         self.bonus.update()
+        # mise a jour du score (timers de bonus...)
+        self.gestion_score.update()
         # collisions entre joueur et coeurs/météorites
         delta = self.bonus.check_player_collision(self.vaisseau_x, self.vaisseau_y)
         if delta != 0:
-            self.vies += delta
+            # delta peut être positif (coeur) ou négatif (météorite)
+            self.gestion_score.vies += delta
+            # s'assurer que le score/etat du bonus est mis à jour si nécessaire
 
 
     def draw_jeu(self):
-        if self.vies > 0:
+        if self.gestion_score.vies > 0:
             pyxel.bltm(0, 0, 0, 192, (self.scroll_y // 4) % 128, 128, 128)
             pyxel.bltm(0, 0, 0, 0, self.scroll_y, 128, 128, 0)
-            pyxel.text(5, 5, 'VIES:' + str(self.vies), 7)
+            self.gestion_score.draw()
             # Affichage du vaisseau
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, u, v, 8, 8, 0)

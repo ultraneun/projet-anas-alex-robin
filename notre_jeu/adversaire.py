@@ -1,5 +1,6 @@
 import pyxel
 import random
+from notre_jeu import Score
 
 class ennemis:
     def __init__(self, tir_instance, explosions_creation_callback):
