@@ -132,7 +132,6 @@ class Jeu:
             # Affichage du vaisseau
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, u, v, 8, 8, 0)
-            # Affichage des ennemis lents
            
             # Affichage des ennemis rapides
             for ennemi in self.adversaire.ennemis_rapides_liste:
