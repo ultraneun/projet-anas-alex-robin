@@ -9,23 +9,18 @@ TRANSPARENT_COLOR = 0
 class MenuSkins:
     def __init__(self):
         # État et choix
-        self.etat = "menu"  # menu, skins, skins_vaisseau, skins_ennemis, skins_ennemis_rapides, skins_bonus
+        self.etat = "menu"  # menu, skins, skins_vaisseau,
         self.menu_choix = 0
         self.skins_menu_choix = 0
 
         # Skins disponibles
        
         self.skin_vaisseau = 0
-        self.skin_ennemis = 0
-        self.skin_ennemis_rapides = 0
-        self.skin_bonus = 0
+        
 
         # Coordonnées des skins dans la spritesheet
         self.skins_vaisseau = [(0,0), (0,40), (0,0)]
-        self.skins_ennemis = [(0,8), (8,40), (8,32)]
-        self.skins_bonus = [(8,16), (16,24), (16,16)]
-        self.skins_ennemis_rapides = [(0,32), (8,24), (16,24)] 
-
+        
     # =====================================================
     # UPDATE
     # =====================================================
@@ -70,12 +65,6 @@ class MenuSkins:
             if self.skins_menu_choix == 0:
                 self.etat = "skins_vaisseau"
             elif self.skins_menu_choix == 1:
-                self.etat = "skins_ennemis"
-            elif self.skins_menu_choix == 2:
-                self.etat = "skins_ennemis_rapides"
-            elif self.skins_menu_choix == 3:
-                self.etat = "skins_bonus"
-            elif self.skins_menu_choix == 4:
                 self.etat = "menu"  # Retour au menu principal
 
     # -------------------------
@@ -87,22 +76,7 @@ class MenuSkins:
                 self.skin_vaisseau = (self.skin_vaisseau + 1) % len(self.skins_vaisseau)
             if pyxel.btnr(pyxel.KEY_LEFT):
                 self.skin_vaisseau = (self.skin_vaisseau - 1) % len(self.skins_vaisseau)
-        elif self.etat == "skins_ennemis":
-            if pyxel.btnr(pyxel.KEY_RIGHT):
-                self.skin_ennemis = (self.skin_ennemis + 1) % len(self.skins_ennemis)
-            if pyxel.btnr(pyxel.KEY_LEFT):
-                self.skin_ennemis = (self.skin_ennemis - 1) % len(self.skins_ennemis)
-        elif self.etat == "skins_ennemis_rapides":
-            if pyxel.btnr(pyxel.KEY_RIGHT):
-                self.skin_ennemis_rapides = (self.skin_ennemis_rapides + 1) % len(self.skins_ennemis_rapides)
-            if pyxel.btnr(pyxel.KEY_LEFT):
-                self.skin_ennemis_rapides = (self.skin_ennemis_rapides - 1) % len(self.skins_ennemis_rapides)
-        elif self.etat == "skins_bonus":
-            if pyxel.btnr(pyxel.KEY_RIGHT):
-                self.skin_bonus = (self.skin_bonus + 1) % len(self.skins_bonus)
-            if pyxel.btnr(pyxel.KEY_LEFT):
-                self.skin_bonus = (self.skin_bonus - 1) % len(self.skins_bonus)
-
+        
         # Retour avec ENTER
         if pyxel.btnr(pyxel.KEY_RETURN):
             self.etat = "skins"
