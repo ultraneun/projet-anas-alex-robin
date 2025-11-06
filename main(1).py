@@ -2,17 +2,9 @@
 import pyxel
 import random
 from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus
-import pycaw
+
 TRANSPARENT_COLOR = 0
 
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-from comtypes import CLSCTX_ALL
-
-devices = AudioUtilities.GetSpeakers()
-interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-tire = interface.QueryInterface(IAudioEndpointVolume)
-
-tire.SetMasterVolumeLevel(0.0, None)
 
 class Jeu:
     def __init__(self):
