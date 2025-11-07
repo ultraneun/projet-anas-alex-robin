@@ -16,7 +16,18 @@ class Tir:
         if sens is None:
             return
         # On crée le tir légèrement au-dessus du vaisseau
-        self.tirs_liste.append([vaisseau_x, vaisseau_y - 8, sens])
+        # position de départ selon sens :
+        # - vertical: centre du vaisseau
+        # - gauche: x du vaisseau
+        # - droite: bout droit du vaisseau
+        if sens == 2:
+            start_x = vaisseau_x + 8
+        elif sens == 0:
+            start_x = vaisseau_x
+        else:
+            start_x = vaisseau_x + 4
+
+        self.tirs_liste.append([start_x, vaisseau_y - 8, sens])
 
     def ajouter_tir_ennemi(self, x, y):
         """Ajoute un tir ennemi."""
@@ -37,6 +48,10 @@ class Tir:
             elif tir[2] == 0:
                 tir[0] -= 2  # vitesse vers la gauche
                 if tir[0] >= -8:
+                    nouvelle_liste_joueur.append(tir)
+            elif tir[2] == 2:
+                tir[0] += 2  # vitesse vers la droite
+                if tir[0] <= 128:
                     nouvelle_liste_joueur.append(tir)
             else:
                 tir[1] -= 2  # comportement par défaut : monter
@@ -60,6 +75,9 @@ class Tir:
                 pyxel.blt(tir[0], tir[1], 0, 8, 0, 8, 8)  # sprite tir vertical
             elif tir[2] == 0:
                 pyxel.blt(tir[0], tir[1], 0, 8, 24, 8, 8)  # sprite tir horizontal
+            elif tir[2] == 2:
+                # pour l'instant on réutilise le même sprite horizontal
+                pyxel.blt(tir[0], tir[1], 0, 8, 24, 8, 8)
             else:
                 pyxel.blt(tir[0], tir[1], 0, 8, 0, 8, 8)  # sprite par défaut
 

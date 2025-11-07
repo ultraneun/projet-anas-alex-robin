@@ -71,13 +71,13 @@ class Jeu:
         self.scroll_y = 960
 
     def deplacement(self):
-        if pyxel.btn(pyxel.KEY_RIGHT) and self.vaisseau_x < 120:
+        if pyxel.btn(pyxel.KEY_D) and self.vaisseau_x < 120:
             self.vaisseau_x += 2
-        if pyxel.btn(pyxel.KEY_LEFT) and self.vaisseau_x > 0:
+        if pyxel.btn(pyxel.KEY_Q) and self.vaisseau_x > 0:
             self.vaisseau_x -= 2
-        if pyxel.btn(pyxel.KEY_DOWN) and self.vaisseau_y < 120:
+        if pyxel.btn(pyxel.KEY_S) and self.vaisseau_y < 120:
             self.vaisseau_y += 2
-        if pyxel.btn(pyxel.KEY_UP) and self.vaisseau_y > 0:
+        if pyxel.btn(pyxel.KEY_Z) and self.vaisseau_y > 0:
             self.vaisseau_y -= 2
 
     def vaisseau_suppression(self):
@@ -105,10 +105,14 @@ class Jeu:
             return
         self.deplacement()
         sens = None
-        if pyxel.btnr(pyxel.KEY_SPACE):
+        # tir vers le haut reste SPACE
+        if pyxel.btnr(pyxel.KEY_UP):
             sens = 1
-        elif pyxel.btnr(pyxel.KEY_A):
+        # tirs gauche/droite avec les flèches (KEY_LEFT / KEY_RIGHT)
+        elif pyxel.btnr(pyxel.KEY_LEFT):    
             sens = 0
+        elif pyxel.btnr(pyxel.KEY_RIGHT):
+            sens = 2
         self.tir.tirs_creation(self.vaisseau_x, self.vaisseau_y, sens)
         self.tir.tirs_deplacement()
         self.adversaire.ennemis_creation()

@@ -4,9 +4,10 @@ from notre_jeu import Score
 
 class ennemis:
     def __init__(self, tir_instance, explosions_creation_callback):
-        # type 0 = Tank (3 PV), 1 = Tireur (rebondit et tire), 2 = Rapide (double vitesse)
+        # type 0 = Tank (3 PV), 1 = Tireur (rebondit et tire), 2 = Rapide (double vitesse) 3=boss
         self.ennemis_liste = []
         self.ennemis_rapides_liste = []
+        self.boss_liste = []
         self.tir = tir_instance
         self.explosions_creation = explosions_creation_callback
         self.skins_ennemis = [(0, 32), (8, 40), (8, 32)]  # Coordonnées des sprites pour les 3 types
