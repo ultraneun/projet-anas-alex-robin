@@ -23,7 +23,8 @@ class Jeu:
         self.modules_base = modules_base.module()
         # initialisation des bonus/malus (coeurs et météorites)
         self.bonus = bonus_malus.BonusMalus(self.modules_base.explosions_creation)
-        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
+        # transmettre l'objet de score à l'instance d'ennemis pour permettre l'incrémentation
+        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation, self.gestion_score)
         self.scroll_y = 960
         self.musique_en_cours = False#musique pyxel
         pyxel.run(self.update, self.draw)
@@ -67,7 +68,7 @@ class Jeu:
         self.gestion_score = Score.GestionScore()
         self.tir = tir.Tir()
         self.modules_base = modules_base.module()
-        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation)
+        self.adversaire = adversaire.ennemis(self.tir, self.modules_base.explosions_creation, self.gestion_score)
         self.scroll_y = 960
 
     def deplacement(self):
@@ -90,6 +91,20 @@ class Jeu:
                 self.gestion_score.retirer_vie()
                 self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
 
+        # Collisions avec les tirs ennemis
+        for tir in self.tir.tirs_ennemis_liste[:]:
+            # tirs ennemis : [x, y], taille approximative 2x4 (voir notre_jeu/tir.py)
+            tir_x, tir_y = tir[0], tir[1]
+            if (tir_x <= self.vaisseau_x + 8 and tir_x + 2 >= self.vaisseau_x and
+                tir_y <= self.vaisseau_y + 8 and tir_y + 4 >= self.vaisseau_y):
+                try:
+                    self.tir.tirs_ennemis_liste.remove(tir)
+                except ValueError:
+                    pass
+                # retirer une vie et afficher une explosion
+                self.gestion_score.retirer_vie()
+                self.modules_base.explosions_creation(self.vaisseau_x, self.vaisseau_y)
+
         
     def scroll(self):
         if self.scroll_y > 384:
@@ -103,6 +118,7 @@ class Jeu:
                 self.reset_game()
                 self.menu_skins.etat = "menu"
             return
+        self.adversaire.mettre_a_jour_vitesse_apparition()
         self.deplacement()
         sens = None
         # tir vers le haut reste SPACE
