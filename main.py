@@ -175,4 +175,5 @@ class Jeu:
             pyxel.text(30, 80, "ENTREE POUR MENU", 6)
 
 
+
 Jeu()

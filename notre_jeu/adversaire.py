@@ -9,12 +9,12 @@ class ennemis:
         self.tir = tir_instance
         self.explosions_creation = explosions_creation
         self.score_obj = score_obj
-        self.vitesse_apparition = 16
+        self.vitesse_apparition = 17
         self.skins_ennemis = [(0, 32), (8, 40), (8, 32)]  # Coordonnées des fantomes pour les 3 types
 
     def mettre_a_jour_vitesse_apparition(self):
         if self.score_obj :  
-            self.vitesse_apparition = max(7, 16 - (self.score_obj.score // 1500))
+            self.vitesse_apparition = max(9, 17 - (self.score_obj.score // 2000))
 
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
