@@ -4,18 +4,17 @@ import random
 class ennemis:
     def __init__(self, tir_instance, explosions_creation, score_obj=None):
         # type 0 = Tank (3 PV), 1 = Tireur (rebondit et tire), 2 = Rapide (double vitesse) 3=boss
-        self.ennemis_liste = []
         self.ennemis_rapides_liste = []
         self.boss_liste = []
         self.tir = tir_instance
         self.explosions_creation = explosions_creation
         self.score_obj = score_obj
-        self.vitesse_apparition = 16
+        self.vitesse_apparition = 17
         self.skins_ennemis = [(0, 32), (8, 40), (8, 32)]  # Coordonnées des fantomes pour les 3 types
 
     def mettre_a_jour_vitesse_apparition(self):
         if self.score_obj :  
-            self.vitesse_apparition = max(7, 16 - (self.score_obj.score // 1500))
+            self.vitesse_apparition = max(9, 17 - (self.score_obj.score // 2000))
 
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
@@ -28,12 +27,7 @@ class ennemis:
 
     def ennemis_deplacement(self):
         """Déplacement des ennemis selon leur type."""
-        # Déplacement des ennemis lents
-        self.ennemis_liste = [
-            [x, y + 1, ennemi_type, pv, direction]
-            for x, y, ennemi_type, pv, direction in self.ennemis_liste
-            if y + 1 <= 128
-        ]
+
 
         # Déplacement des ennemis rapides
         nouvelle_liste_rapides = []
@@ -63,20 +57,6 @@ class ennemis:
         ennemis_rapides_a_supprimer = set()
         tirs_a_supprimer = set()
 
-        for i, ennemi in enumerate(self.ennemis_liste):
-            for j, tir in enumerate(self.tir.tirs_liste):
-                if self._detecter_collision(ennemi, tir):
-                    ennemis_lents_a_supprimer.add(i)
-                    tirs_a_supprimer.add(j)
-                    ennemi[3] -= 1
-                    if ennemi[3] <= 0:
-                        self.explosions_creation(ennemi[0], ennemi[1])
-                        # ajouter 100 points si on a une référence au gestionnaire de score
-                        if self.score_obj is not None:
-                            try:
-                                self.score_obj.ajouter_score(100)
-                            except Exception:
-                                pass
 
         for i, ennemi in enumerate(self.ennemis_rapides_liste):
             for j, tir in enumerate(self.tir.tirs_liste):
@@ -94,10 +74,6 @@ class ennemis:
                                 pass
 
         # Mise à jour des listes
-        self.ennemis_liste = [
-            ennemi for idx, ennemi in enumerate(self.ennemis_liste)
-            if idx not in ennemis_lents_a_supprimer or ennemi[3] > 0
-        ]
         self.ennemis_rapides_liste = [
             ennemi for idx, ennemi in enumerate(self.ennemis_rapides_liste)
             if idx not in ennemis_rapides_a_supprimer or ennemi[3] > 0
