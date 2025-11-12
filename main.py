@@ -122,7 +122,7 @@ class Jeu:
         self.deplacement()
         sens = None
         # tir vers le haut reste SPACE
-        if pyxel.btnr(pyxel.KEY_UP):
+        if pyxel.btnr(pyxel.KEY_SPACE):
             sens = 1
         # tirs gauche/droite avec les flèches (KEY_LEFT / KEY_RIGHT)
         elif pyxel.btnr(pyxel.KEY_LEFT):    
