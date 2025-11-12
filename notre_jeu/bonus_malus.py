@@ -12,7 +12,7 @@ class BonusMalus:
 
 	def update(self):
 		# spawn coeur (rare)
-		if pyxel.frame_count % 150 == 0:
+		if pyxel.frame_count % 190 == 0:
 			self.coeurs_liste.append([random.randint(0, 120), 0])
 
 		# spawn météorite (plus fréquent)
