@@ -25,7 +25,8 @@ class Tir:
         elif sens == 0:
             start_x = vaisseau_x
         else:
-            start_x = vaisseau_x + 4
+            start_x = vaisseau_x 
+
 
         self.tirs_liste.append([start_x, vaisseau_y - 8, sens])
 
