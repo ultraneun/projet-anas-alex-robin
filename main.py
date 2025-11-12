@@ -133,7 +133,10 @@ class Jeu:
         self.tir.tirs_deplacement()
         self.adversaire.ennemis_creation()
         self.adversaire.ennemis_deplacement()
-        self.adversaire.ennemis_tir()  
+        self.adversaire.ennemis_tir()
+        self.adversaire.boss_creation()
+        self.adversaire.boss_deplacement()
+        self.adversaire.boss_tir()
         self.adversaire.ennemis_suppression()
         self.vaisseau_suppression()  
         self.modules_base.explosions_animation()
@@ -158,11 +161,16 @@ class Jeu:
             # Affichage du vaisseau
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
             pyxel.blt(self.vaisseau_x, self.vaisseau_y, 0, u, v, 8, 8, 0)
-           
+        
             # Affichage des ennemis rapides
             for ennemi in self.adversaire.ennemis_rapides_liste:
                 u_r, v_r = self.adversaire.skins_ennemis[ennemi[2]]
                 pyxel.blt(ennemi[0], ennemi[1], 0, u_r, v_r, 8, 8, 0)
+            
+            # ⭐ AFFICHAGE DU BOSS ⭐
+            for boss in self.adversaire.boss_liste:
+                pyxel.blt(boss[0], boss[1], 0, 32, 0, 16, 16, 0)
+            
             # Affichage des tirs (joueur et ennemis)
             self.tir.tirs_affichage()
             # affichage des coeurs et météorites

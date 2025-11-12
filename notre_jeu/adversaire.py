@@ -12,14 +12,62 @@ class ennemis:
         self.score_obj = score_obj
         self.vitesse_apparition = 16
         self.skins_ennemis = [(0, 32), (8, 40), (8, 32)]  # Coordonnées des fantomes pour les 3 types
+        self.boss_apparu = False
+        self.boss_vaincu = False
 
     def mettre_a_jour_vitesse_apparition(self):
         pass
         #if self.score_obj % 1500 == 0:  
          #  self.vitesse_apparition = max(7, 16 - (self.score_obj.score // 1500))
 
+    def boss_creation(self):
+        """Création du boss quand le score atteint 2000 points."""
+        if self.score_obj is not None and not self.boss_apparu:
+            try:
+                if self.score_obj.score >= 2000:
+                    # Boss au centre de l'écran en haut
+                    # [x, y, type, pv, direction, phase_attaque]
+                    self.boss_liste.append([56, 10, 3, 50, 1, 0])
+                    self.boss_apparu = True
+            except Exception:
+                pass
+
+    def boss_deplacement(self):
+        """Déplacement du boss : zigzag horizontal en haut de l'écran."""
+        nouvelle_liste_boss = []
+        for x, y, boss_type, pv, direction, phase in self.boss_liste:
+            # Mouvement horizontal
+            x += direction * 2
+            
+            # Rebondit sur les bords
+            if x <= 0 or x >= 104:  # 104 car le boss fait 16x16
+                direction *= -1
+                x = max(0, min(x, 104))
+            
+            # Descend légèrement de temps en temps
+            if pyxel.frame_count % 120 == 0:
+                y = min(y + 5, 30)
+            
+            nouvelle_liste_boss.append([x, y, boss_type, pv, direction, phase])
+        
+        self.boss_liste = nouvelle_liste_boss
+
+    def boss_tir(self):
+        """Le boss tire 3 projectiles en éventail toutes les 2 secondes."""
+        if len(self.boss_liste) > 0 and pyxel.frame_count % 120 == 0:
+            boss = self.boss_liste[0]
+            # Tir central
+            self.tir.ajouter_tir_ennemi(boss[0] + 8, boss[1] + 16)
+            # Tir gauche (légèrement décalé)
+            self.tir.ajouter_tir_ennemi(boss[0] + 4, boss[1] + 16)
+            # Tir droite (légèrement décalé)
+            self.tir.ajouter_tir_ennemi(boss[0] + 12, boss[1] + 16)
+
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
+        # Ne créé plus d'ennemis normaux si le boss est présent
+        if len(self.boss_liste) > 0:
+            return
 
         if pyxel.frame_count % self.vitesse_apparition == 0:
             ennemi_type = random.randint(0, 2)  # 0, 1 ou 2
@@ -62,6 +110,7 @@ class ennemis:
         """Suppression des ennemis touchés par les tirs du joueur."""
         ennemis_lents_a_supprimer = set()
         ennemis_rapides_a_supprimer = set()
+        boss_a_supprimer = set()
         tirs_a_supprimer = set()
 
         for i, ennemi in enumerate(self.ennemis_liste):
@@ -72,7 +121,6 @@ class ennemis:
                     ennemi[3] -= 1
                     if ennemi[3] <= 0:
                         self.explosions_creation(ennemi[0], ennemi[1])
-                        # ajouter 100 points si on a une référence au gestionnaire de score
                         if self.score_obj is not None:
                             try:
                                 self.score_obj.ajouter_score(100)
@@ -87,10 +135,26 @@ class ennemis:
                     ennemi[3] -= 1
                     if ennemi[3] <= 0:
                         self.explosions_creation(ennemi[0], ennemi[1])
-                        # ajouter 100 points si on a une référence au gestionnaire de score
                         if self.score_obj is not None:
                             try:
                                 self.score_obj.ajouter_score(100)
+                            except Exception:
+                                pass
+
+        # Collision avec le boss (16x16 pixels)
+        for i, boss in enumerate(self.boss_liste):
+            for j, tir in enumerate(self.tir.tirs_liste):
+                if self._detecter_collision_boss(boss, tir):
+                    tirs_a_supprimer.add(j)
+                    boss[3] -= 1  # Enlève 1 PV
+                    if boss[3] <= 0:
+                        self.explosions_creation(boss[0], boss[1])
+                        self.explosions_creation(boss[0] + 8, boss[1] + 8)  # Double explosion
+                        boss_a_supprimer.add(i)
+                        self.boss_vaincu = True
+                        if self.score_obj is not None:
+                            try:
+                                self.score_obj.ajouter_score(5000)  # Gros bonus
                             except Exception:
                                 pass
 
@@ -103,6 +167,10 @@ class ennemis:
             ennemi for idx, ennemi in enumerate(self.ennemis_rapides_liste)
             if idx not in ennemis_rapides_a_supprimer or ennemi[3] > 0
         ]
+        self.boss_liste = [
+            boss for idx, boss in enumerate(self.boss_liste)
+            if idx not in boss_a_supprimer
+        ]
         self.tir.tirs_liste = [
             tir for idx, tir in enumerate(self.tir.tirs_liste)
             if idx not in tirs_a_supprimer
@@ -114,3 +182,10 @@ class ennemis:
                 ennemi[0] + 8 >= tir[0] and
                 ennemi[1] <= tir[1] + 8 and
                 ennemi[1] + 8 >= tir[1])
+
+    def _detecter_collision_boss(self, boss, tir):
+        """Détection de collision entre le boss (16x16) et un tir."""
+        return (boss[0] <= tir[0] + 8 and
+                boss[0] + 16 >= tir[0] and
+                boss[1] <= tir[1] + 8 and
+                boss[1] + 16 >= tir[1])
