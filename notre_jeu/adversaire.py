@@ -17,7 +17,7 @@ class ennemis:
     def mettre_a_jour_vitesse_apparition(self):
         pass
         if self.score_obj :  
-         self.vitesse_apparition = max(9, 18 - (self.score_obj.score // 1500))
+         self.vitesse_apparition = max(9, 18 - (self.score_obj.score // 2000))
 
     def boss_creation(self):
         """Création du boss quand le score atteint 2000 points."""
