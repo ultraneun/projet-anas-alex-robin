@@ -4,6 +4,7 @@ import random
 from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus, Score
 
 TRANSPARENT_COLOR = 0
+BOSS_MAX_PV = 50
 class Jeu:
     def __init__(self):
         pyxel.init(128, 128, title="Space Game", display_scale=7)
@@ -32,6 +33,8 @@ class Jeu:
         self.bonus_laser_actif = False  # Devient True quand on ramasse le bonus
         self.bonus_laser_duree = 300  # 10 secondes à 30 FPS
         self.bonus_laser_timer = 0  # Timer du bonus
+        # Charges de laser récupérées via les coeurs
+        self.laser_charges = 0
         
         pyxel.run(self.update, self.draw)
         
@@ -82,6 +85,8 @@ class Jeu:
         # Réinitialise le bonus laser
         self.bonus_laser_actif = False
         self.bonus_laser_timer = 0
+        # Réinitialise les charges de laser
+        self.laser_charges = 0
 
     def deplacement(self):
         if pyxel.btn(pyxel.KEY_D) and self.vaisseau_x < 120:
@@ -147,13 +152,21 @@ class Jeu:
                 # Boss fait 16x16
                 if (hx < bx + 16 and hx + hw > bx and
                     hy < by + 16 and hy + hh > by):
-                    boss[2] -= 2  # Le laser fait 2 dégâts par frame au boss
-                    if boss[2] <= 0:
+                    # Dans `adversaire.boss_liste` la structure est [x,y,type,pv,direction,phase]
+                    # Les PV sont en position 3.
+                    boss[3] -= 2  # Le laser enlève 2 PV au boss par collision
+                    if boss[3] <= 0:
                         try:
                             self.adversaire.boss_liste.remove(boss)
-                            # Ajoute des points pour le boss
-                            self.gestion_score.ajouter_score(100)
+                            # Ajoute des points pour le boss (gros bonus)
+                            if self.gestion_score is not None:
+                                try:
+                                    self.gestion_score.ajouter_score(5000)
+                                except Exception:
+                                    pass
+                            # Double explosion comme côté adversaire
                             self.modules_base.explosions_creation(bx, by)
+                            self.modules_base.explosions_creation(bx + 8, by + 8)
                         except ValueError:
                             pass
         
@@ -197,13 +210,14 @@ class Jeu:
             sens = 2
         
         # ========== TIR LASER avec touche L ==========
-        if self.bonus_laser_actif and pyxel.btnr(pyxel.KEY_L):
+        # Tir laser via charges (touche A). Chaque tir consomme 1 charge.
+        if self.laser_charges > 0 and pyxel.btnr(pyxel.KEY_A) and self.tir.laser_peut_tirer():
             self.tir.laser_creation(self.vaisseau_x, self.vaisseau_y)
+            self.laser_charges -= 1
         
         # ========== ACTIVATION TEMPORAIRE DU LASER (pour tester) ==========
-        # Décommente cette ligne pour activer le laser avec la touche B
-        if pyxel.btnr(pyxel.KEY_B):
-            self.activer_bonus_laser()
+        # (L'activation par "B" a été remplacée : on récupère désormais des charges
+        # en ramassant des coeurs. La touche pour tirer est `A`.)
         
         self.tir.tirs_creation(self.vaisseau_x, self.vaisseau_y, sens)
         self.tir.laser_update()  # Met à jour le cooldown du laser
@@ -226,10 +240,13 @@ class Jeu:
         # mise a jour du score (timers de bonus...)
         self.gestion_score.update()
         # collisions entre joueur et coeurs/météorites
-        delta = self.bonus.check_player_collision(self.vaisseau_x, self.vaisseau_y)
-        if delta != 0:
-            # delta peut être positif (coeur) ou négatif (météorite)
-            self.gestion_score.vies += delta
+        delta_vies, delta_charges = self.bonus.check_player_collision(self.vaisseau_x, self.vaisseau_y)
+        if delta_vies != 0:
+            # delta_vies peut être positif (coeur) ou négatif (météorite)
+            self.gestion_score.vies += delta_vies
+        if delta_charges != 0:
+            # Ajouter des charges de laser (ex : 1 par coeur ramassé)
+            self.laser_charges += delta_charges
 
 
     def draw_jeu(self):
@@ -237,6 +254,23 @@ class Jeu:
             pyxel.bltm(0, 0, 0, 192, (self.scroll_y // 4) % 128, 128, 128)
             pyxel.bltm(0, 0, 0, 0, self.scroll_y, 128, 128, 0)
             self.gestion_score.draw()
+            # Indicateur des charges de laser : label 'CHARGE :' puis ronds
+            try:
+                max_display = 6
+                label_x = 5
+                label_y = 24
+                pyxel.text(label_x, label_y, "CHARGE :", 10)
+                # position de départ des ronds (approx largeur du label)
+                start_x = label_x + 40
+                display_count = min(self.laser_charges, max_display)
+                for i in range(display_count):
+                    px = start_x + i * 10
+                    py = 28
+                    pyxel.circ(px, py, 3, 10)
+                if self.laser_charges > max_display:
+                    pyxel.text(start_x + max_display * 10, 24, f"+{self.laser_charges - max_display}", 10)
+            except Exception:
+                pass
             
             # Affichage du vaisseau
             u, v = self.menu_skins.skins_vaisseau[self.menu_skins.skin_vaisseau]
@@ -250,6 +284,26 @@ class Jeu:
             # ⭐ AFFICHAGE DU BOSS ⭐
             for boss in self.adversaire.boss_liste:
                 pyxel.blt(boss[0], boss[1], 0, 32, 0, 32, 16 ,0)
+                # Barre de PV au-dessus du boss
+                try:
+                    bx, by = boss[0], boss[1]
+                    pv = boss[3]
+                except Exception:
+                    continue
+                bar_w = 32
+                bar_h = 4
+                bar_x = bx
+                bar_y = max(0, by - 8)
+                # fond (gris/noir)
+                pyxel.rect(bar_x, bar_y, bar_w, bar_h, 0)
+                # remplissage proportionnel
+                fill_w = 0
+                if BOSS_MAX_PV > 0:
+                    fill_w = int(bar_w * max(0, min(pv, BOSS_MAX_PV)) / BOSS_MAX_PV)
+                if fill_w > 0:
+                    pyxel.rect(bar_x, bar_y, fill_w, bar_h, 10)
+                # bordure
+                pyxel.rectb(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2, 7)
             
             # Affichage des tirs (joueur, ennemis ET LASERS)
             self.tir.tirs_affichage()
@@ -261,23 +315,7 @@ class Jeu:
             for explosion in self.modules_base.explosions_liste:
                 pyxel.circb(explosion[0] + 4, explosion[1] + 4, 2 * (explosion[2] // 4), 8 + explosion[2] % 3)
             
-            # ========== INDICATEUR BONUS LASER ==========
-            if self.bonus_laser_actif:
-                # Affiche le timer du bonus en haut à droite
-                temps_restant = self.bonus_laser_timer // 30 + 1
-                pyxel.text(90, 5, f"LASER: {temps_restant}s", 10)
-                # Barre de progression
-                barre_largeur = (self.bonus_laser_timer / self.bonus_laser_duree) * 30
-                pyxel.rect(90, 12, int(barre_largeur), 2, 10)
             
-            # Instructions
-            pyxel.text(5, 115, "B: Activer Laser", 7)
-            if self.bonus_laser_actif:
-                if self.tir.laser_peut_tirer():
-                    pyxel.text(5, 108, "L: Tir Laser!", 10)
-                else:
-                    cooldown_frames = self.tir.laser_cooldown
-                    pyxel.text(5, 108, f"Cooldown: {cooldown_frames}", 8)
         else:
             pyxel.text(50, 64, "GAME OVER", 7)
             pyxel.text(30, 80, "ENTREE POUR MENU", 6)
