@@ -34,27 +34,30 @@ class Jeu:
     # UPDATE
     # --------------------
     def update(self):
-        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau"]:
-            if self.musique_en_cours:
-                pyxel.stop()
-                self.musique_en_cours = False
-            self.menu_skins.update()
-            if self.menu_skins.etat == "menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix == 0:
-                self.reset_game()
-                self.menu_skins.etat = "jeu"
-        else:
+        # Si l'état du menu est "jeu" -> exécuter la logique du jeu
+        if self.menu_skins.etat == "jeu":
             if not self.musique_en_cours:
                 pyxel.playm(0, loop=True)
                 self.musique_en_cours = True
             self.update_jeu()
+        else:
+            # on est dans un menu (menu, regles, skins, ...)
+            if self.musique_en_cours:
+                pyxel.stop()
+                self.musique_en_cours = False
+            self.menu_skins.update()
 
+            # si on vient de passer en "jeu" (par validation du menu), on reset la partie
+            if self.menu_skins.etat == "jeu":
+                self.reset_game()
     # --------------------
     # DRAW
     # --------------------
     def draw(self):
         pyxel.cls(0)
-        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau"]:
+        if self.menu_skins.etat in ["menu", "regles","skins", "skins_vaisseau"]:
             self.menu_skins.draw()
+            
         else:
             self.draw_jeu()
 
