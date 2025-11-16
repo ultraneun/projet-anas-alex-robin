@@ -3,7 +3,7 @@ import pyxel
 class GestionScore:
     def __init__(self):
         self.score = 0
-        self.vies = 3
+        self.vies = 30
         self.bonus_actif = False
         self.timer_bonus = 0
 

@@ -7,6 +7,17 @@ class Tir:
         self.tirs_liste = []
         # Liste des tirs ennemis : [x, y]
         self.tirs_ennemis_liste = []
+        
+        # ========== LASER PUISSANT ==========
+        # Liste des lasers actifs : [x, y, longueur_actuelle]
+        self.lasers_liste = []
+        # Paramètres du laser
+        self.laser_largeur = 5  # Largeur du laser (nombre de lignes)
+        self.laser_longueur_max = 40  # Longueur maximale du laser
+        self.laser_vitesse_croissance = 5  # Vitesse d'expansion
+        self.laser_vitesse_deplacement = 4  # Vitesse de descente
+        self.laser_cooldown = 0  # Cooldown entre les tirs
+        self.laser_cooldown_max = 45  # 1.5 secondes à 30 FPS
 
     def tirs_creation(self, vaisseau_x, vaisseau_y, sens=None):
         """Création d'un tir du joueur.
@@ -16,10 +27,6 @@ class Tir:
         if sens is None:
             return
         # On crée le tir légèrement au-dessus du vaisseau
-        # position de départ selon sens :
-        # - vertical: centre du vaisseau
-        # - gauche: x du vaisseau
-        # - droite: bout droit du vaisseau
         if sens == 2:
             start_x = vaisseau_x + 8
         elif sens == 0:
@@ -27,13 +34,97 @@ class Tir:
         else:
             start_x = vaisseau_x 
 
-
         self.tirs_liste.append([start_x, vaisseau_y - 8, sens])
 
     def ajouter_tir_ennemi(self, x, y):
         """Ajoute un tir ennemi."""
         self.tirs_ennemis_liste.append([x, y])
 
+    # ========== FONCTIONS LASER ==========
+    
+    def laser_peut_tirer(self):
+        """Vérifie si on peut tirer un laser (cooldown terminé)"""
+        return self.laser_cooldown <= 0
+    
+    def laser_creation(self, vaisseau_x, vaisseau_y):
+        """Crée un nouveau laser depuis le vaisseau"""
+        if self.laser_peut_tirer():
+            # Position de départ : centre du vaisseau (8x8)
+            self.lasers_liste.append([vaisseau_x + 4, vaisseau_y, 0])
+            self.laser_cooldown = self.laser_cooldown_max
+    
+    def laser_update(self):
+        """Met à jour le cooldown du laser"""
+        if self.laser_cooldown > 0:
+            self.laser_cooldown -= 1
+    
+    def lasers_deplacement(self):
+        """Déplace et fait grandir les lasers"""
+        nouvelle_liste = []
+        for laser in self.lasers_liste:
+            x, y, longueur = laser[0], laser[1], laser[2]
+            
+            # Fait MONTER le laser (signe - au lieu de +)
+            y -= self.laser_vitesse_deplacement
+            
+            # Fait grandir le laser jusqu'à la longueur max
+            if longueur < self.laser_longueur_max:
+                longueur += self.laser_vitesse_croissance
+            
+            # Garde le laser s'il est encore visible (vérifie en haut de l'écran)
+            if y + longueur > 0:  # Si le laser n'est pas complètement sorti en haut
+                nouvelle_liste.append([x, y, longueur])
+        
+        self.lasers_liste = nouvelle_liste
+    
+    def lasers_affichage(self):
+        """Affiche tous les lasers actifs"""
+        for laser in self.lasers_liste:
+            x, y, longueur = laser[0], laser[1], laser[2]
+            
+            # Dessine plusieurs lignes pour créer un laser large
+            for i in range(self.laser_largeur):
+                # Ligne principale (au centre)
+                offset = i - self.laser_largeur // 2  # Ex: -2, -1, 0, 1, 2 pour largeur=5
+                
+                # Point de départ (en bas, position actuelle du laser)
+                x1 = x + offset
+                y1 = y
+                
+                # Point d'arrivée (en haut du laser - le laser MONTE)
+                x2 = x + offset
+                y2 = y - longueur
+                
+                # Couleur selon la position (centre plus brillant)
+                if offset == 0:
+                    couleur = 7  # Blanc (centre)
+                elif abs(offset) == 1:
+                    couleur = 10  # Jaune (milieu)
+                else:
+                    couleur = 9  # Orange (côtés)
+                
+                # Dessine la ligne verticale
+                pyxel.line(x1, y1, x2, y2, couleur)
+            
+            # Ajoute un point brillant à l'extrémité (en haut maintenant)
+            pyxel.circ(x, y - longueur, 2, 7)
+    
+    def laser_get_hitbox(self):
+        """Retourne les hitbox des lasers pour les collisions"""
+        hitboxes = []
+        for laser in self.lasers_liste:
+            x, y, longueur = laser[0], laser[1], laser[2]
+            # Hitbox : [x_min, y_min, largeur, hauteur]
+            # Le laser monte, donc y_min est y - longueur
+            hitboxes.append([
+                x - self.laser_largeur // 2,  # x_min
+                y - longueur,                  # y_min (en haut du laser)
+                self.laser_largeur,            # largeur
+                longueur                       # hauteur
+            ])
+        return hitboxes
+
+    # ========== FONCTIONS TIRS NORMAUX ==========
 
     def tirs_deplacement(self):
         """Déplacement des tirs du joueur et des ennemis, suppression hors-écran."""
@@ -67,6 +158,9 @@ class Tir:
             if tir[1] <= 128:
                 nouvelle_liste_ennemis.append(tir)
         self.tirs_ennemis_liste = nouvelle_liste_ennemis
+        
+        # Déplacement des lasers
+        self.lasers_deplacement()
 
     def tirs_affichage(self):
         """Affichage des tirs du joueur et des ennemis."""
@@ -77,11 +171,13 @@ class Tir:
             elif tir[2] == 0:
                 pyxel.blt(tir[0], tir[1], 0, 8, 24, 8, 8)  # sprite tir horizontal
             elif tir[2] == 2:
-                # pour l'instant on réutilise le même sprite horizontal
                 pyxel.blt(tir[0], tir[1], 0, 8, 24, 8, 8)
             else:
                 pyxel.blt(tir[0], tir[1], 0, 8, 0, 8, 8)  # sprite par défaut
 
-        # Tirs ennemis (couleur différente ou sprite différent)
+        # Tirs ennemis
         for tir in self.tirs_ennemis_liste:
             pyxel.rect(tir[0], tir[1], 2, 4, 8)  # rectangle rouge pour les tirs ennemis
+        
+        # Affichage des lasers
+        self.lasers_affichage()
