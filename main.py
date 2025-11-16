@@ -249,7 +249,7 @@ class Jeu:
             
             # ⭐ AFFICHAGE DU BOSS ⭐
             for boss in self.adversaire.boss_liste:
-                pyxel.blt(boss[0], boss[1], 0, 32, 0, 16, 16, 0)
+                pyxel.blt(boss[0], boss[1], 0, 32, 0, 32, 16 ,0)
             
             # Affichage des tirs (joueur, ennemis ET LASERS)
             self.tir.tirs_affichage()

@@ -23,7 +23,7 @@ class ennemis:
         """Création du boss quand le score atteint 2000 points."""
         if self.score_obj is not None and not self.boss_apparu:
             try:
-                if self.score_obj.score >= 1200:
+                if self.score_obj.score % 6000==0 and self.score_obj.score !=0:
                     # Boss au centre de l'écran en haut
                     # [x, y, type, pv, direction, phase_attaque]
                     self.boss_liste.append([56, 10, 3, 50, 1, 0])
