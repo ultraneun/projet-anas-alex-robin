@@ -20,10 +20,10 @@ class ennemis:
          self.vitesse_apparition = max(9, 18 - (self.score_obj.score // 2000))
 
     def boss_creation(self):
-        """Création du boss quand le score atteint 2000 points."""
+        """Création du boss quand le score atteint 12000 points."""
         if self.score_obj is not None and not self.boss_apparu:
             try:
-                if self.score_obj.score % 6000==0 and self.score_obj.score !=0:
+                if self.score_obj.score >= 12000:
                     # Boss au centre de l'écran en haut
                     # [x, y, type, pv, direction, phase_attaque]
                     self.boss_liste.append([56, 10, 3, 50, 1, 0])
@@ -32,35 +32,63 @@ class ennemis:
                 pass
 
     def boss_deplacement(self):
-        """Déplacement du boss : zigzag horizontal en haut de l'écran."""
+        """Déplacement du boss selon sa phase."""
         nouvelle_liste_boss = []
         for x, y, boss_type, pv, direction, phase in self.boss_liste:
             # Mouvement horizontal
-            x += direction * 2
-            
+            x += direction * (2 + phase // 2)  # Plus rapide en phase 2 et 3
+
             # Rebondit sur les bords
-            if x <= 0 or x >= 104:  # 104 car le boss fait 16x16
+            if x <= 0 or x >= 104:
                 direction *= -1
                 x = max(0, min(x, 104))
-            
-            # Descend légèrement de temps en temps
-            if pyxel.frame_count % 120 == 0:
+
+            # Descend légèrement en phase 1 et 3
+            if phase in [1, 3] and pyxel.frame_count % 120 == 0:
                 y = min(y + 5, 30)
-            
+
             nouvelle_liste_boss.append([x, y, boss_type, pv, direction, phase])
-        
+
         self.boss_liste = nouvelle_liste_boss
 
+
     def boss_tir(self):
-        """Le boss tire 3 projectiles en éventail toutes les 2 secondes."""
-        if len(self.boss_liste) > 0 and pyxel.frame_count % 120 == 0:
+        """Le boss tire selon sa phase d'attaque actuelle."""
+        if len(self.boss_liste) > 0:
             boss = self.boss_liste[0]
-            # Tir central
-            self.tir.ajouter_tir_ennemi(boss[0] + 8, boss[1] + 16)
-            # Tir gauche (légèrement décalé)
-            self.tir.ajouter_tir_ennemi(boss[0] + 4, boss[1] + 16)
-            # Tir droite (légèrement décalé)
-            self.tir.ajouter_tir_ennemi(boss[0] + 12, boss[1] + 16)
+            x, y, _, _, _, phase = boss
+
+            if pyxel.frame_count % 120 == 0:
+                phase = (phase + 1) % 4  # Cycle entre les 4 phases
+                self.boss_liste[0][5] = phase  # Met à jour la phase
+
+            if phase == 0:  # Tir en éventail
+                if pyxel.frame_count % 60 == 0:
+                    self.tir.ajouter_tir_ennemi(x + 8, y + 16)
+                    self.tir.ajouter_tir_ennemi(x + 4, y + 16)
+                    self.tir.ajouter_tir_ennemi(x + 12, y + 16)
+
+            elif phase == 1:  # Tir en cercle
+                if pyxel.frame_count % 30 == 0:
+                    for angle in range(0, 360, 45):  # 8 projectiles en cercle
+                        rad = angle * (3.14159 / 180)
+                        tir_x = x + 8 + 20 * pyxel.cos(rad)
+                        tir_y = y + 8 + 20 * pyxel.sin(rad)
+                        self.tir.ajouter_tir_ennemi(tir_x, tir_y)
+
+            elif phase == 2:  # Tir en spirale
+                if pyxel.frame_count % 20 == 0:
+                    for i in range(5):  # 5 projectiles en spirale
+                        rad = (pyxel.frame_count + i * 20) * (3.14159 / 180)
+                        tir_x = x + 8 + 15 * pyxel.cos(rad)
+                        tir_y = y + 8 + 15 * pyxel.sin(rad)
+                        self.tir.ajouter_tir_ennemi(tir_x, tir_y)
+
+            elif phase == 3:  # Tir en ligne horizontale
+                if pyxel.frame_count % 40 == 0:
+                    for dx in [-16, -8, 0, 8, 16]:  # 5 projectiles en ligne
+                        self.tir.ajouter_tir_ennemi(x + 8 + dx, y + 16)
+
 
     def ennemis_creation(self):
         """Création aléatoire des 3 types d'ennemis spéciaux."""
