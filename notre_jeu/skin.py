@@ -33,6 +33,9 @@ class MenuSkins:
             self.update_skins()
         elif self.etat.startswith("skins_"):
             self.update_sousmenu_skins()
+        elif self.etat == "gameover":
+            # gameover handled via update_gameover called with jeu in main
+            pass
 
     # -------------------------
     # MENU PRINCIPAL
@@ -119,6 +122,57 @@ class MenuSkins:
             self.draw_skins()
         elif self.etat.startswith("skins_"):
             self.draw_sousmenu_skins()
+        elif self.etat == "gameover":
+            self.draw_gameover()
+
+    def update_gameover(self, jeu):
+        """Gère l'écran Game Over : choix Rejouer / Menu."""
+        # menu_choix : 0 = Rejouer, 1 = Menu principal
+        if not hasattr(self, 'gameover_choice'):
+            self.gameover_choice = 0
+
+        if pyxel.btnr(pyxel.KEY_DOWN):
+            self.gameover_choice = (self.gameover_choice + 1) % 2
+        if pyxel.btnr(pyxel.KEY_UP):
+            self.gameover_choice = (self.gameover_choice - 1) % 2
+
+        if pyxel.btnr(pyxel.KEY_RETURN):
+            if self.gameover_choice == 0:
+                # Rejouer
+                jeu.reset_game()
+                self.etat = "jeu"
+                # arrêter la musique pour relancer proprement
+                try:
+                    pyxel.stop()
+                except Exception:
+                    pass
+                # indiquer que la musique est arrêtée pour qu'elle puisse redémarrer
+                try:
+                    jeu.musique_en_cours = False
+                except Exception:
+                    pass
+            else:
+                # Retour au menu principal
+                jeu.reset_game()
+                self.etat = "menu"
+                try:
+                    pyxel.stop()
+                except Exception:
+                    pass
+                try:
+                    jeu.musique_en_cours = False
+                except Exception:
+                    pass
+
+    def draw_gameover(self):
+        pyxel.cls(0)
+        pyxel.text(40, 30, "GAME OVER", 8)
+        # choices
+        options = ["REJOUER", "MENU"]
+        for i, txt in enumerate(options):
+            color = 10 if getattr(self, 'gameover_choice', 0) == i else 7
+            pyxel.text(40, 60 + i*12, txt, color)
+        pyxel.text(22, 100, "ENTER = selection", 6)
 
     def draw_menu(self):
         pyxel.cls(0)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pyxel
-import random
 from notre_jeu import modules_base, adversaire, tir, skin, bonus_malus, Score
+
 
 TRANSPARENT_COLOR = 0
 BOSS_MAX_PV = 50
@@ -65,10 +65,21 @@ class Jeu:
             return
 
 
-        # SI GAME OVER
+        # SI GAME OVER -> basculer en état 'gameover' et déléguer
         if self.gestion_score.vies <= 0:
-            if pyxel.btnr(pyxel.KEY_RETURN):
-                self.menu_skins.etat = "menu"
+            if self.menu_skins.etat != "gameover":
+                self.menu_skins.etat = "gameover"
+                try:
+                    pyxel.stop()
+                except Exception:
+                    pass
+                # marquer la musique comme arrêtée pour permettre un redémarrage
+                self.musique_en_cours = False
+            # déléguer la navigation du menu gameover (qui appelle reset_game)
+            try:
+                self.menu_skins.update_gameover(self)
+            except Exception:
+                pass
             return
 
         # Lancer la musique
@@ -85,8 +96,8 @@ class Jeu:
     def draw(self):
         pyxel.cls(0)
 
-        # MENUS
-        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "regles", "commandes"]:
+        # MENUS (inclut maintenant l'écran Game Over)
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "regles", "commandes", "gameover"]:
             self.menu_skins.draw()
             return
 
@@ -97,12 +108,7 @@ class Jeu:
             pyxel.text(22, 80, "ENTER pour retourner", 7)
             return
 
-        # ecran game over
-        if self.gestion_score.vies <= 0:
-            if pyxel.btnr(pyxel.KEY_RETURN):
-                self.reset_game()
-                self.menu_skins.etat = "menu"
-            return
+        # (Game Over dessiné via `menu_skins` quand `self.menu_skins.etat == "gameover"`)
 
         # DESSIN DU JEU
         self.draw_jeu()
