@@ -124,6 +124,48 @@ class Tir:
             ])
         return hitboxes
 
+    def laser_collisions(self, adversaire, modules_base, gestion_score):
+        """Gère les collisions entre les lasers et les ennemis.
+
+        Déplacé depuis `main.py` pour centraliser la logique liée aux lasers
+        dans `tir.py` où sont gérés les lasers et leurs hitboxes.
+        """
+        hitboxes = self.laser_get_hitbox()
+        for hx, hy, hw, hh in hitboxes:
+            # Collision avec ennemis rapides
+            for ennemi in adversaire.ennemis_rapides_liste[:]:
+                ex, ey = ennemi[0], ennemi[1]
+                if (hx < ex + 8 and hx + hw > ex and hy < ey + 8 and hy + hh > ey):
+                    try:
+                        adversaire.ennemis_rapides_liste.remove(ennemi)
+                        if gestion_score is not None:
+                            try:
+                                gestion_score.ajouter_score(100)
+                            except Exception:
+                                pass
+                        modules_base.explosions_creation(ex, ey)
+                    except ValueError:
+                        pass
+
+            # Collision avec boss
+            for boss in adversaire.boss_liste[:]:
+                bx, by = boss[0], boss[1]
+                # Boss fait 16x16
+                if (hx < bx + 16 and hx + hw > bx and hy < by + 16 and hy + hh > by):
+                    boss[3] -= 2
+                    if boss[3] <= 0:
+                        try:
+                            adversaire.boss_liste.remove(boss)
+                            if gestion_score is not None:
+                                try:
+                                    gestion_score.ajouter_score(5000)
+                                except Exception:
+                                    pass
+                            modules_base.explosions_creation(bx, by)
+                            modules_base.explosions_creation(bx + 8, by + 8)
+                        except ValueError:
+                            pass
+
     # ========== FONCTIONS TIRS NORMAUX ==========
 
     def tirs_deplacement(self):

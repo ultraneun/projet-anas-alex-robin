@@ -195,3 +195,38 @@ class MenuSkins:
         for ligne in texte:
             pyxel.text(10, y, ligne, 7)
             y += 8
+
+    # --------------------------------------------------
+    # HUD / Overlays
+    # --------------------------------------------------
+    def draw_hud(self, jeu):
+        """Dessine les éléments HUD en jeu (charges, cooldowns, instructions)."""
+        try:
+            # Label
+            label_x = 5
+            label_y = 24
+            pyxel.text(label_x, label_y, "CHARGE :", 10)
+            # ronds pour représenter les charges
+            max_display = 6
+            start_x = label_x + 40
+            display_count = min(getattr(jeu, "laser_charges", 0), max_display)
+            for i in range(display_count):
+                px = start_x + i * 10
+                py = 28
+                pyxel.circ(px, py, 3, 10)
+            if getattr(jeu, "laser_charges", 0) > max_display:
+                pyxel.text(start_x + max_display * 10, 24, f"+{jeu.laser_charges - max_display}", 10)
+
+            # Indicateur cooldown / instruction A
+            if hasattr(jeu.tir, "laser_peut_tirer") and jeu.tir.laser_peut_tirer():
+                if getattr(jeu, "laser_charges", 0) > 0:
+                    pyxel.text(5, 108, "A: Tir Laser!", 10)
+                else:
+                    pyxel.text(5, 108, "A: Tir Laser (0 charges)", 8)
+            else:
+                cooldown_frames = getattr(jeu.tir, "laser_cooldown", 0)
+                pyxel.text(5, 108, f"Cooldown: {cooldown_frames}", 8)
+
+            pyxel.text(5, 115, "A: Tir Laser (consume 1 charge)", 7)
+        except Exception:
+            pass

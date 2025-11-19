@@ -231,44 +231,11 @@ class Jeu:
             self.win = True
             return
         
-        self.adversaire.mettre_a_jour_vitesse_apparition()
-        self.deplacement()
-        
-        sens = None
-        # tir vers le haut reste SPACE
-        if pyxel.btnr(pyxel.KEY_SPACE):
-            sens = 1
-        # tirs gauche/droite avec les flèches (KEY_LEFT / KEY_RIGHT)
-        elif pyxel.btnr(pyxel.KEY_LEFT):    
-            sens = 0
-        elif pyxel.btnr(pyxel.KEY_RIGHT):
-            sens = 2
-        
-        # ========== TIR LASER avec touche L ==========
-        # Tir laser via charges (touche A). Chaque tir consomme 1 charge.
-        if self.laser_charges > 0 and pyxel.btnr(pyxel.KEY_A) and self.tir.laser_peut_tirer():
-            self.tir.laser_creation(self.vaisseau_x, self.vaisseau_y)
-            self.laser_charges -= 1
-        
-        # ========== ACTIVATION TEMPORAIRE DU LASER (pour tester) ==========
-        # (L'activation par "B" a été remplacée : on récupère désormais des charges
-        # en ramassant des coeurs. La touche pour tirer est `A`.)
-        
-        self.tir.tirs_creation(self.vaisseau_x, self.vaisseau_y, sens)
-        self.tir.laser_update()  # Met à jour le cooldown du laser
-        self.tir.tirs_deplacement()
-        self.adversaire.ennemis_creation()
-        self.adversaire.ennemis_deplacement()
-        self.adversaire.ennemis_tir()
-        self.adversaire.boss_creation()
-        self.adversaire.boss_deplacement()
-        self.adversaire.boss_tir()
-        self.adversaire.ennemis_suppression()
-        self.vaisseau_suppression()  
-        self.laser_collisions()  # Gère les collisions laser
-        self.modules_base.explosions_animation()
-        self.scroll()
-        self.update_bonus_laser()  # Met à jour le timer du bonus
+        # Délègue la mise à jour du monde pour alléger `main.py`
+        try:
+            self.modules_base.update_world(self)
+        except Exception:
+            pass
         
         # mise a jour des bonus/malus
         self.bonus.update()
@@ -289,21 +256,9 @@ class Jeu:
             pyxel.bltm(0, 0, 0, 192, (self.scroll_y // 4) % 128, 128, 128)
             pyxel.bltm(0, 0, 0, 0, self.scroll_y, 128, 128, 0)
             self.gestion_score.draw()
-            # Indicateur des charges de laser : label 'CHARGE :' puis ronds
+            # HUD: déléguer le dessin à skin.MenuSkins
             try:
-                max_display = 6
-                label_x = 5
-                label_y = 24
-                pyxel.text(label_x, label_y, "CHARGE :", 10)
-                # position de départ des ronds (approx largeur du label)
-                start_x = label_x + 40
-                display_count = min(self.laser_charges, max_display)
-                for i in range(display_count):
-                    px = start_x + i * 10
-                    py = 28
-                    pyxel.circ(px, py, 3, 10)
-                if self.laser_charges > max_display:
-                    pyxel.text(start_x + max_display * 10, 24, f"+{self.laser_charges - max_display}", 10)
+                self.menu_skins.draw_hud(self)
             except Exception:
                 pass
             

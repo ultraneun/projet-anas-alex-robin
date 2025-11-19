@@ -20,10 +20,9 @@ class ennemis:
          self.vitesse_apparition = max(9, 18 - (self.score_obj.score // 2000))
 
     def boss_creation(self):
-        """Création du boss quand le score atteint 12000 points."""
         if self.score_obj is not None and not self.boss_apparu:
             try:
-                if self.score_obj.score % 2000==0 and self.score_obj.score !=0:
+                if self.score_obj.score % 4000==0 and self.score_obj.score !=0:
                     # Boss au centre de l'écran en haut
                     # [x, y, type, pv, direction, phase_attaque]
                     self.boss_liste.append([56, 10, 3, 50, 1, 0])
@@ -174,6 +173,9 @@ class ennemis:
             boss for idx, boss in enumerate(self.boss_liste)
             if idx not in boss_a_supprimer
         ]
+        # Si un boss a été supprimé, autoriser un nouveau spawn futur
+        if boss_a_supprimer:
+            self.boss_apparu = False
         self.tir.tirs_liste = [
             tir for idx, tir in enumerate(self.tir.tirs_liste)
             if idx not in tirs_a_supprimer
