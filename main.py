@@ -35,6 +35,8 @@ class Jeu:
         self.bonus_laser_timer = 0  # Timer du bonus
         # Charges de laser récupérées via les coeurs
         self.laser_charges = 0
+        #etat du la victoire :
+        self.win = False
         
         pyxel.run(self.update, self.draw)
         
@@ -43,32 +45,67 @@ class Jeu:
     # UPDATE
     # --------------------
     def update(self):
-        # Si l'état du menu est "jeu" -> exécuter la logique du jeu
-        if self.menu_skins.etat == "jeu":
-            if not self.musique_en_cours:
-                pyxel.playm(0, loop=True)
-                self.musique_en_cours = True
-            self.update_jeu()
-        else:
-            # on est dans un menu (menu, regles, skins, ...)
+        # ÉTAT MENU
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "regles", "commandes"]:
             if self.musique_en_cours:
                 pyxel.stop()
                 self.musique_en_cours = False
             self.menu_skins.update()
-
-            # si on vient de passer en "jeu" (par validation du menu), on reset la partie
-            if self.menu_skins.etat == "jeu":
+            if self.menu_skins.etat == "menu" and pyxel.btnr(pyxel.KEY_RETURN) and self.menu_skins.menu_choix == 0:
                 self.reset_game()
+                self.menu_skins.etat = "jeu"
+            return
+
+        # SI GAGNÉ → STOPPER LE JEU
+        if self.win:
+            if pyxel.btnr(pyxel.KEY_RETURN):
+                self.reset_game()
+                self.menu_skins.etat = "menu"
+                self.win = False
+            return
+
+
+        # SI GAME OVER
+        if self.gestion_score.vies <= 0:
+            if pyxel.btnr(pyxel.KEY_RETURN):
+                self.menu_skins.etat = "menu"
+            return
+
+        # Lancer la musique
+        if not self.musique_en_cours:
+            pyxel.playm(0, loop=True)
+            self.musique_en_cours = True
+
+        # Update du jeu
+        self.update_jeu()
+
     # --------------------
     # DRAW
     # --------------------
     def draw(self):
         pyxel.cls(0)
-        if self.menu_skins.etat in ["menu", "regles","skins", "skins_vaisseau"]:
+
+        # MENUS
+        if self.menu_skins.etat in ["menu", "skins", "skins_vaisseau", "regles", "commandes"]:
             self.menu_skins.draw()
-            
-        else:
-            self.draw_jeu()
+            return
+
+        # ecran you win
+        if self.win:
+            pyxel.cls(0)
+            pyxel.text(40, 60, "YOU WIN !", 10)
+            pyxel.text(22, 80, "ENTER pour retourner", 7)
+            return
+
+        # ecran game over
+        if self.gestion_score.vies <= 0:
+            if pyxel.btnr(pyxel.KEY_RETURN):
+                self.reset_game()
+                self.menu_skins.etat = "menu"
+            return
+
+        # DESSIN DU JEU
+        self.draw_jeu()
 
     # --------------------
     # FONCTIONS DU JEU
@@ -190,10 +227,8 @@ class Jeu:
                 self.bonus_laser_actif = False
 
     def update_jeu(self):
-        if self.gestion_score.vies <= 0:
-            if pyxel.btnr(pyxel.KEY_RETURN):
-                self.reset_game()
-                self.menu_skins.etat = "menu"
+        if self.gestion_score.score >= 30000:
+            self.win = True
             return
         
         self.adversaire.mettre_a_jour_vitesse_apparition()

@@ -9,7 +9,7 @@ TRANSPARENT_COLOR = 0
 class MenuSkins:
     def __init__(self):
         # État et choix
-        self.etat = "menu"  # menu, regles, skins, skins_vaisseau, jeu
+        self.etat = "menu"  # menu, regles,commandes, skins, skins_vaisseau, jeu
         self.menu_choix = 0
         self.skins_menu_choix = 0
 
@@ -27,6 +27,8 @@ class MenuSkins:
             self.update_menu()
         elif self.etat == "regles":
             self.update_regles()
+        elif self.etat == "commandes":
+            self.update_commandes()
         elif self.etat == "skins":
             self.update_skins()
         elif self.etat.startswith("skins_"):
@@ -36,11 +38,11 @@ class MenuSkins:
     # MENU PRINCIPAL
     # -------------------------
     def update_menu(self):
-        # nombre d'options = 4 (JOUER, REGLES, CHANGER DE SKIN, QUITTER)
+        # nombre d'options = 5 (JOUER, REGLES, COMMANDES , CHANGER DE SKIN, QUITTER)
         if pyxel.btnr(pyxel.KEY_DOWN):
-            self.menu_choix = (self.menu_choix + 1) % 4
+            self.menu_choix = (self.menu_choix + 1) % 5
         if pyxel.btnr(pyxel.KEY_UP):
-            self.menu_choix = (self.menu_choix - 1) % 4
+            self.menu_choix = (self.menu_choix - 1) % 5
 
         # Validation
         if pyxel.btnr(pyxel.KEY_RETURN):
@@ -49,9 +51,11 @@ class MenuSkins:
             elif self.menu_choix == 1:
                 self.etat = "regles"
             elif self.menu_choix == 2:
+                self.etat = "commandes"
+            elif self.menu_choix == 3:
                 self.skins_menu_choix = 0
                 self.etat = "skins"      # Aller dans le menu skins
-            elif self.menu_choix == 3:
+            elif self.menu_choix == 4:
                 pyxel.quit()             # Quitter le jeu
 
     # -------------------------
@@ -92,7 +96,15 @@ class MenuSkins:
         # Retour au menu si ENTER ou ESC
         if pyxel.btnr(pyxel.KEY_RETURN) or pyxel.btnr(pyxel.KEY_ESCAPE):
             self.etat = "menu"
+    
+    # -------------------------
+    # COMMANDES
+    # -------------------------
 
+    def update_commandes(self):
+        # Retour au menu si ENTER ou ESC
+        if pyxel.btnr(pyxel.KEY_RETURN) or pyxel.btnr(pyxel.KEY_ESCAPE):
+            self.etat = "menu"
     # =====================================================
     # DRAW
     # =====================================================
@@ -101,6 +113,8 @@ class MenuSkins:
             self.draw_menu()
         elif self.etat == "regles":
             self.draw_regles()
+        elif self.etat == "commandes":
+            self.draw_commandes()
         elif self.etat == "skins":
             self.draw_skins()
         elif self.etat.startswith("skins_"):
@@ -109,7 +123,7 @@ class MenuSkins:
     def draw_menu(self):
         pyxel.cls(0)
         pyxel.text(40, 30, "SPACE GAME", 10)
-        options = ["JOUER","REGLES DU JEU","CHANGER DE SKIN", "QUITTER"]
+        options = ["JOUER","REGLES DU JEU","COMMANDES","CHANGER DE SKIN", "QUITTER"]
         for i, txt in enumerate(options):
             color = 7 if i == self.menu_choix else 5
             pyxel.text(40, 60 + i*12, txt, color)
@@ -159,9 +173,25 @@ class MenuSkins:
     "- Enter pour MENU",
 
 ]
-
-
         y = 30
         for ligne in texte:
             pyxel.text(10, y, ligne, 7)
             y +=8
+
+
+    def draw_commandes(self):
+        pyxel.cls(0)
+        pyxel.text(10, 10, "COMMANDES DU JEU", 10)
+
+        texte = [
+            "- ZQSD : Se deplacer",
+            "- ESPACE : Tirer",
+            "- Fleche G/D : Tir lateraux",
+            "- A : Tir special",
+            "- ENTER for Menu"
+        ]
+
+        y = 30
+        for ligne in texte:
+            pyxel.text(10, y, ligne, 7)
+            y += 8
