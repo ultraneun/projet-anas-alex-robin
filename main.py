@@ -227,7 +227,7 @@ class Jeu:
                 self.bonus_laser_actif = False
 
     def update_jeu(self):
-        if self.gestion_score.score >= 30000:
+        if self.gestion_score.score >= 35000:
             self.win = True
             return
         
